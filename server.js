@@ -3,7 +3,7 @@
  * Backend: Node.js + Express
  * Deploy: Railway / Render / Fly.io / VPS
  */
-
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
@@ -12,6 +12,13 @@ const cheerio = require("cheerio");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+// Serve frontend files (VERY IMPORTANT)
+app.use(express.static(path.join(__dirname)));
+
+// Root route (REQUIRED for Railway)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 // ─── SECURITY / MIDDLEWARE ────────────────────────────────────────────────────
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || "*" }));
