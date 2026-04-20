@@ -791,8 +791,7 @@ const data = await res.json();
 }
 
 async function fetchCompetitors(query) {
-  const data = await ytGet('search', { part:'snippet', q:query, type:'video', maxResults:5 });
-  return (data.items||[]).map(it => ({
+  (it => ({
     id: it.id.videoId,
     title: it.snippet.title,
     channel: it.snippet.channelTitle,
@@ -801,9 +800,7 @@ async function fetchCompetitors(query) {
   }));
 }
 
-async function fetchTagsBatch(ids) {
-  if (!ids.length) return {};
-  const data = await ytGet('videos', { part:'snippet,statistics', id:ids.join(',') });
+ });
   const map = {};
   for (const it of data.items||[]) {
     map[it.id] = { tags: it.snippet.tags||[], viewCount:parseInt(it.statistics?.viewCount||'0') };
