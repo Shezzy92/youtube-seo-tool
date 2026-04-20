@@ -764,9 +764,18 @@ function setLoader(show, activeStep) {
 
 
 async function fetchVideoData(videoId) {
-  const data = await ytGet('videos', { part:'snippet,statistics', id:videoId });
-  if (!data.items?.length) return null;
-  const it = data.items[0], s = it.snippet, st = it.statistics;
+ const res = await fetch("https://youtube-seo-tool-production.up.railway.app/api/analyze", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    input: query
+  })
+});
+
+const data = await res.json();
+ s = it.snippet, st = it.statistics;
   return {
     id: videoId,
     title: s.title,
@@ -838,17 +847,38 @@ async function analyze() {
   setLoader(true, 1);
 
   try {
-    const mode = /youtube\.com|youtu\.be/.test(query) ? 'url' : 'keyword';
-    let videoId = mode==='url' ? extractVideoId(query) : null;
-    let videoData = null, searchQuery = query;
+  const res = await fetch("https://youtube-seo-tool-production.up.railway.app/api/analyze", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      input: query
+    })
+  });
 
-    // Step 1
-    setLoader(true,1);
-    if (videoId) {
-      videoData = await fetchVideoData(videoId);
-      if (!videoData) throw new Error('Video not found. Check the URL and try again.');
-      searchQuery = videoData.title;
-    }
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Something went wrong");
+  }
+
+  // ===== DATA ASSIGN =====
+  const videoData = data.videoData;
+  const tags = data.tags;
+
+  // ===== UI UPDATE =====
+  renderResults({
+    video: videoData,
+    originalTags: tags.original,
+    viralTags: tags.viral,
+    longTailTags: tags.longTail,
+    copyString: data.copyString
+  });
+
+} catch (err) {
+  showError(err.message);
+}
 
     // Step 2
     setLoader(true,2);
